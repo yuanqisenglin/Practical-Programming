@@ -13,8 +13,17 @@ pip install -r requirements.txt
 ### 方式1：使用命令行
 
 ```bash
-# 使用模拟LLM（推荐用于测试）
-python src/main.py --script scripts/customer_service.dsl --mock
+# 订单查询场景
+python src/main.py --script scripts/order_inquiry.dsl --mock
+
+# 退款申请场景
+python src/main.py --script scripts/refund_application.dsl --mock
+
+# 物流跟踪场景
+python src/main.py --script scripts/logistics_tracking.dsl --mock
+
+# 售后投诉场景
+python src/main.py --script scripts/after_sales_complaint.dsl --mock
 ```
 
 ### 方式2：使用快速运行脚本
@@ -33,23 +42,20 @@ python run_example.py
 ============================================================
 输入 'quit' 或 'exit' 退出
 
-系统: 欢迎使用智能客服系统！我是您的专属客服助手。
-系统: 我可以帮助您处理以下业务：
-系统: 1. 订单查询
-系统: 2. 退款申请
-系统: 3. 物流查询
-系统: 4. 产品咨询
-系统: 5. 投诉建议
-系统: 请告诉我您需要什么帮助？
-
-您: 我想查询订单
-
-系统: 好的，我来帮您查询订单信息。
+系统: 欢迎使用订单查询系统！
 系统: 请输入您的订单号：
 
 您: 1234567890
 
-系统: 正在为您查询订单号为 1234567890 的订单信息...
+系统: 正在验证订单号 1234567890...
+系统: 订单验证成功！
+系统: 订单号：1234567890
+系统: 订单状态：已确认
+系统: 订单金额：￥299.00
+系统: 下单时间：2024-01-15 10:30:00
+系统: 您想要进行什么操作？
+系统: 1. 查看订单详情
+系统: 2. 返回主菜单
 ```
 
 ## 4. 运行测试
@@ -69,7 +75,7 @@ python tests/run_tests.py
    ```
 3. 运行程序（不使用--mock参数）：
    ```bash
-   python src/main.py --script scripts/customer_service.dsl
+   python src/main.py --script scripts/order_inquiry.dsl
    ```
 
 ## 6. 创建自定义脚本

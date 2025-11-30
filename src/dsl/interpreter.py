@@ -64,6 +64,8 @@ class Interpreter:
                             "message": "脚本中没有定义任何Step",
                             "error": "No steps defined"
                         }
+                # 重置语句索引，因为开始新步骤
+                context.set_statement_index(0)
             
             current_step_name = context.get_current_step()
             step_node = self.script.get_step(current_step_name)
@@ -91,7 +93,13 @@ class Interpreter:
         """执行Step节点"""
         messages = []  # 收集所有speak消息
         
-        for statement in step.statements:
+        # 获取当前执行位置（从上次中断的地方继续）
+        start_index = context.get_statement_index()
+        
+        for index, statement in enumerate(step.statements):
+            # 如果索引小于起始位置，跳过已执行的语句
+            if index < start_index:
+                continue
             result = self._execute_statement(statement, context, input_callback)
             
             # 收集speak消息
@@ -102,6 +110,8 @@ class Interpreter:
             if isinstance(result, dict):
                 # 如果状态是waiting_input，需要等待用户输入
                 if result.get("status") == "waiting_input":
+                    # 保存当前执行位置，下次从这个位置继续
+                    context.set_statement_index(index)
                     # 如果有收集到的消息，合并到结果中
                     if messages:
                         result["message"] = "\n".join(messages) + "\n" + result.get("message", "")
@@ -111,9 +121,9 @@ class Interpreter:
                 if result.get("status") in ("finished", "error"):
                     # 如果有收集到的消息，优先使用speak消息
                     if messages:
-                        # 对于finished状态，如果有speak消息，使用最后一条speak消息
+                        # 对于finished状态，合并所有speak消息
                         if result.get("status") == "finished":
-                            result["message"] = messages[-1]
+                            result["message"] = "\n".join(messages)
                         else:
                             result["message"] = "\n".join(messages) + "\n" + result.get("message", "")
                     return result
@@ -121,6 +131,8 @@ class Interpreter:
                 # 如果有next_step，跳转到下一个Step
                 if result.get("next_step"):
                     context.set_current_step(result["next_step"])
+                    # 重置语句索引，因为跳转到新步骤
+                    context.set_statement_index(0)
                     # 递归执行下一个Step，增加递归深度
                     next_step_node = self.script.get_step(result["next_step"])
                     if next_step_node:
@@ -136,9 +148,8 @@ class Interpreter:
                             return error_result
                         
                         next_result = self._execute_step(next_step_node, context, input_callback, recursion_depth + 1)
-                        # 合并消息
-                        if messages and isinstance(next_result, dict) and next_result.get("message"):
-                            next_result["message"] = "\n".join(messages) + "\n" + next_result.get("message", "")
+                        # 当branch跳转时，不合并之前步骤的消息，只显示新步骤的消息
+                        # 这样可以避免显示不相关的信息
                         return next_result
                     else:
                         error_result = {
@@ -149,15 +160,20 @@ class Interpreter:
                         if messages:
                             error_result["message"] = "\n".join(messages) + "\n" + error_result["message"]
                         return error_result
+                
+                # 如果listen返回running状态，说明已经处理了输入，继续执行下一个语句
+                # 不需要特殊处理，继续循环
         
         # Step执行完毕，但没有明确的结束或跳转
+        # 重置语句索引，因为步骤执行完毕
+        context.set_statement_index(0)
         result = {
             "status": "finished",
             "message": f"Step '{step.name}' 执行完毕"
         }
-        # 如果有收集到的消息，优先使用最后一条speak消息
+        # 如果有收集到的消息，合并所有speak消息
         if messages:
-            result["message"] = messages[-1]
+            result["message"] = "\n".join(messages)
         return result
     
     def _execute_statement(self, statement: ASTNode, context: ExecutionContext,

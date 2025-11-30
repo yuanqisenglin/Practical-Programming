@@ -20,9 +20,10 @@ Practical-Programming/
 │   │   └── execution_context.py  # 执行上下文管理
 │   └── main.py            # 主程序入口
 ├── scripts/               # DSL脚本范例
-│   ├── customer_service.dsl    # 客服场景
-│   ├── order_inquiry.dsl       # 订单查询场景
-│   └── refund_process.dsl      # 退款处理场景
+│   ├── order_inquiry.dsl          # 订单查询业务场景
+│   ├── refund_application.dsl     # 退款申请业务场景
+│   ├── logistics_tracking.dsl     # 物流跟踪业务场景
+│   └── after_sales_complaint.dsl  # 售后投诉业务场景
 ├── tests/                 # 测试代码
 │   ├── test_lexer.py
 │   ├── test_parser.py
@@ -76,11 +77,20 @@ pip install -r requirements.txt
 ### 运行程序
 
 ```bash
-# 使用模拟LLM（推荐用于测试）
-python src/main.py --script scripts/customer_service.dsl --mock
+# 订单查询场景
+python src/main.py --script scripts/order_inquiry.dsl --mock
+
+# 退款申请场景
+python src/main.py --script scripts/refund_application.dsl --mock
+
+# 物流跟踪场景
+python src/main.py --script scripts/logistics_tracking.dsl --mock
+
+# 售后投诉场景
+python src/main.py --script scripts/after_sales_complaint.dsl --mock
 
 # 使用真实LLM API（需要配置API密钥）
-python src/main.py --script scripts/customer_service.dsl --api-key your_api_key
+python src/main.py --script scripts/order_inquiry.dsl --api-key your_api_key
 ```
 
 ### 运行测试

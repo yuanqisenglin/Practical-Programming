@@ -82,6 +82,8 @@ class AgentSystem:
         if user_input:
             context.set_pending_input(user_input)
             context.set_variable("last_input", user_input)
+            # 重置输入使用标志，允许新的输入被使用
+            # 注意：这里不直接重置，因为set_pending_input已经处理了
         
         # 定义输入回调函数
         def input_callback(prompt: str) -> str:
@@ -134,22 +136,34 @@ def interactive_mode(agent: AgentSystem, user_id: str = "default"):
             if result.get("status") == "waiting_input":
                 print("系统: " + result.get("message", "等待输入..."))
             elif result.get("status") == "finished":
-                print("系统: " + result.get("message", "对话结束"))
-                break
+                # 显示最后的消息
+                message = result.get("message", "对话结束")
+                if message:
+                    lines = message.split('\n')
+                    for line in lines:
+                        if line.strip():
+                            print("系统: " + line)
+                # 不立即退出，允许用户继续对话
+                # break  # 注释掉，让用户可以继续输入
             elif result.get("status") == "error":
                 print("错误: " + result.get("message", "未知错误"))
                 break
             else:
                 message = result.get("message", "")
                 if message:
-                    print("系统: " + message)
+                    # 分割多行消息，逐行显示
+                    lines = message.split('\n')
+                    for line in lines:
+                        if line.strip():  # 只显示非空行
+                            print("系统: " + line)
                 
                 # 如果状态是running但需要继续，继续执行（只处理当前输入后的连续执行）
                 if result.get("status") == "running":
                     # 继续执行直到需要用户输入或结束
                     # 注意：这里不传入新的user_input，让系统自然执行到下一个listen
-                    max_iterations = 50  # 防止无限循环，减少迭代次数
+                    max_iterations = 20  # 减少迭代次数，避免过度执行
                     iteration = 0
+                    last_messages = set()  # 用于去重，避免重复显示相同消息
                     while iteration < max_iterations:
                         iteration += 1
                         # 不传入新输入，让系统继续执行
@@ -159,15 +173,29 @@ def interactive_mode(agent: AgentSystem, user_id: str = "default"):
                             print("系统: " + next_result.get("message", "等待输入..."))
                             break
                         elif next_result.get("status") == "finished":
-                            print("系统: " + next_result.get("message", "对话结束"))
-                            return
+                            # 步骤执行完毕，显示消息但不退出
+                            msg = next_result.get("message", "对话结束")
+                            if msg:
+                                lines = msg.split('\n')
+                                for line in lines:
+                                    if line.strip():
+                                        print("系统: " + line)
+                            break  # 停止循环，等待新的用户输入
                         elif next_result.get("status") == "error":
                             print("错误: " + next_result.get("message", "未知错误"))
                             return
                         else:
                             msg = next_result.get("message", "")
                             if msg:
-                                print("系统: " + msg)
+                                # 检查是否已经显示过这条消息
+                                msg_hash = hash(msg)
+                                if msg_hash not in last_messages:
+                                    last_messages.add(msg_hash)
+                                    # 分割多行消息，逐行显示
+                                    lines = msg.split('\n')
+                                    for line in lines:
+                                        if line.strip():  # 只显示非空行
+                                            print("系统: " + line)
                             # 如果状态不是running，停止循环
                             if next_result.get("status") != "running":
                                 break

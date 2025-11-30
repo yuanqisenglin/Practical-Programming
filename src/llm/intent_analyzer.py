@@ -153,11 +153,28 @@ class MockIntentAnalyzer:
     def __init__(self):
         # 简单的关键词到意图的映射
         self.intent_keywords = {
-            "订单查询": ["订单", "查询", "订单号", "订单状态"],
-            "退款申请": ["退款", "退货", "申请退款"],
-            "物流查询": ["物流", "快递", "配送", "运输"],
-            "产品咨询": ["产品", "商品", "咨询", "介绍"],
-            "投诉建议": ["投诉", "建议", "意见", "不满"]
+            "订单查询": ["订单", "查询", "订单号", "订单状态", "详情", "1", "查看订单", "订单详情", "查询订单", "订单信息"],
+            "退款申请": ["退款", "退货", "申请退款", "3", "申请", "退款", "退货", "申请退款"],
+            "物流查询": ["物流", "快递", "配送", "运输", "2", "查看物流", "物流信息", "查询物流", "物流跟踪", "快递查询"],
+            "产品咨询": ["产品", "商品", "咨询", "介绍", "客服", "联系", "联系客服", "4", "帮助", "产品咨询"],
+            "投诉建议": ["投诉建议", "意见", "不满"],
+            "提交投诉": ["提交投诉", "我要投诉", "投诉问题", "我要提交投诉"],
+            "提交建议": ["提交建议", "我要建议", "提建议", "反馈建议"],
+            "查询投诉": ["查询投诉", "投诉查询"],
+            "查询进度": ["查询进度", "进度查询", "投诉进度", "处理进度", "投诉状态"],
+            # 通用操作
+            "返回主菜单": ["返回", "主菜单", "菜单", "退出", "2", "返回主菜单", "回到主菜单", "回到菜单"],
+            "查看订单详情": ["查看", "订单详情", "详情", "1", "查看订单详情", "订单信息", "查看详情"],
+            "查看物流信息": ["查看", "物流信息", "物流", "2", "查看物流信息", "物流查询", "查看物流", "物流轨迹", "详细物流"],
+            "重新查询": ["重新", "查询", "重新查询", "再查", "2", "重新查询物流"],
+            "重新申请": ["重新", "申请", "重新申请", "再申请", "1", "重新申请退款"],
+            "原路退回": ["原路", "原路退回", "原路返回", "退回原支付账户", "1"],
+            "退回余额": ["退回余额", "余额", "退回账户余额", "2"],
+            # 退款原因相关
+            "商品质量问题": ["质量问题", "商品质量", "质量", "质量问题", "1", "商品质量问题"],
+            "商品与描述不符": ["描述不符", "与描述不符", "不符", "描述", "2", "商品与描述不符"],
+            "不需要了": ["不需要", "不需要了", "不想要", "3"],
+            "其他原因": ["其他", "其他原因", "4", "其他退款原因"]
         }
     
     def analyze(self, user_input: str, intents: Optional[list] = None) -> Dict[str, Any]:
@@ -168,7 +185,20 @@ class MockIntentAnalyzer:
         # 使用更精确的匹配：优先匹配更具体的意图
         # 按意图的优先级排序（更具体的在前）
         intent_priority = [
-            "物流查询",  # 更具体，优先匹配
+            "返回主菜单",  # 操作类意图，优先匹配
+            "查看订单详情",
+            "查看物流信息",
+            "重新查询",
+            "重新申请",
+            "商品质量问题",  # 退款原因，优先匹配
+            "商品与描述不符",
+            "不需要了",
+            "其他原因",
+            "查询进度",  # 售后投诉相关，优先匹配查询类
+            "查询投诉",
+            "提交投诉",  # 提交类意图
+            "提交建议",
+            "物流查询",  # 业务类意图
             "退款申请",
             "订单查询",
             "产品咨询",
@@ -183,10 +213,18 @@ class MockIntentAnalyzer:
             if intent in self.intent_keywords:
                 keywords = self.intent_keywords[intent]
                 for keyword in keywords:
-                    if keyword in user_input_lower:
-                        matched_intent = intent
-                        confidence = 0.8
-                        break
+                    # 对于数字关键词，需要精确匹配（避免 "22" 匹配到 "2"）
+                    if keyword.isdigit():
+                        if user_input_lower == keyword or user_input_lower.strip() == keyword:
+                            matched_intent = intent
+                            confidence = 0.9
+                            break
+                    else:
+                        # 对于文字关键词，使用包含匹配
+                        if keyword in user_input_lower:
+                            matched_intent = intent
+                            confidence = 0.8
+                            break
                 if matched_intent != "unknown":
                     break
         
@@ -195,10 +233,18 @@ class MockIntentAnalyzer:
             for intent, keywords in self.intent_keywords.items():
                 if intent not in intent_priority:  # 跳过已检查的
                     for keyword in keywords:
-                        if keyword in user_input_lower:
-                            matched_intent = intent
-                            confidence = 0.8
-                            break
+                        # 对于数字关键词，需要精确匹配
+                        if keyword.isdigit():
+                            if user_input_lower == keyword or user_input_lower.strip() == keyword:
+                                matched_intent = intent
+                                confidence = 0.9
+                                break
+                        else:
+                            # 对于文字关键词，使用包含匹配
+                            if keyword in user_input_lower:
+                                matched_intent = intent
+                                confidence = 0.8
+                                break
                     if matched_intent != "unknown":
                         break
         

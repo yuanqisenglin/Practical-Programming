@@ -16,6 +16,7 @@ class ExecutionContext:
         self.current_step: Optional[str] = None
         self.pending_input: Optional[str] = None  # 待处理的用户输入
         self.input_used: bool = False  # 输入是否已被使用
+        self.statement_index: int = 0  # 当前执行到的语句索引
         self.lock = threading.Lock()  # 用于线程安全
     
     def set_variable(self, name: str, value: Any):
@@ -59,6 +60,17 @@ class ExecutionContext:
             self.current_step = None
             self.pending_input = None
             self.input_used = False
+            self.statement_index = 0
+    
+    def set_statement_index(self, index: int):
+        """设置当前执行到的语句索引"""
+        with self.lock:
+            self.statement_index = index
+    
+    def get_statement_index(self) -> int:
+        """获取当前执行到的语句索引"""
+        with self.lock:
+            return self.statement_index
     
     def __repr__(self):
         return f"ExecutionContext(user_id={self.user_id}, step={self.current_step}, vars={len(self.variables)})"

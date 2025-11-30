@@ -191,7 +191,7 @@ step start {
     speak "请告诉我您需要什么帮助？"
     listen user_input
     branch user_intent == "订单查询" -> query_order
-    branch user_intent == "退款申请" -> refund_process
+    branch user_intent == "退款申请" -> refund_application
     speak "抱歉，我没有理解您的需求。"
     end
 }
@@ -204,7 +204,7 @@ step query_order {
     end
 }
 
-step refund_process {
+step refund_application {
     speak "好的，我来帮您处理退款申请。"
     speak "请输入您要退款的订单号："
     listen refund_order_id
@@ -215,7 +215,7 @@ step refund_process {
 
 ## 8. 最佳实践
 
-1. **Step命名**: 使用有意义的Step名称，如`query_order`、`refund_process`
+1. **Step命名**: 使用有意义的Step名称，如`query_order`、`refund_application`、`logistics_tracking`、`after_sales_complaint`
 2. **变量命名**: 使用清晰的变量名，如`order_id`、`user_input`
 3. **错误处理**: 在关键分支添加默认处理逻辑
 4. **注释**: 为复杂的业务逻辑添加注释说明
