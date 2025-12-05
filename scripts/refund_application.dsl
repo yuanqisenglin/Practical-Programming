@@ -36,22 +36,6 @@ step check_order {
     branch user_intent == "其他原因" -> refund_reason_detail
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "退款申请" -> refund_reason_detail
-    speak "抱歉，我没有理解您的输入。请选择1-4中的选项。"
-    speak "1. 商品质量问题"
-    speak "2. 商品与描述不符"
-    speak "3. 不需要了"
-    speak "4. 其他原因"
-    listen refund_reason_code
-    branch refund_reason_code == "1" -> refund_reason_detail
-    branch refund_reason_code == "2" -> refund_reason_detail
-    branch refund_reason_code == "3" -> refund_reason_detail
-    branch refund_reason_code == "4" -> refund_reason_detail
-    branch user_intent == "商品质量问题" -> refund_reason_detail
-    branch user_intent == "商品与描述不符" -> refund_reason_detail
-    branch user_intent == "不需要了" -> refund_reason_detail
-    branch user_intent == "其他原因" -> refund_reason_detail
-    branch user_intent == "返回主菜单" -> start
-    branch user_intent == "退款申请" -> refund_reason_detail
     end
 }
 
@@ -74,15 +58,8 @@ step select_refund_method {
     listen refund_method
     branch refund_method == "1" -> confirm_refund
     branch refund_method == "2" -> confirm_refund
-    branch user_intent == "原路退回" -> confirm_refund
-    branch user_intent == "退回余额" -> confirm_refund
-    branch user_intent == "返回主菜单" -> start
-    speak "抱歉，我没有理解您的输入。请选择1或2。"
-    speak "1. 原路退回（退回原支付账户）"
-    speak "2. 退回余额（退回账户余额）"
-    listen refund_method
-    branch refund_method == "1" -> confirm_refund
-    branch refund_method == "2" -> confirm_refund
+    branch refund_method == "原路退回" -> confirm_refund
+    branch refund_method == "退回余额" -> confirm_refund
     branch user_intent == "原路退回" -> confirm_refund
     branch user_intent == "退回余额" -> confirm_refund
     branch user_intent == "返回主菜单" -> start
@@ -126,14 +103,6 @@ step submit_refund {
     branch user_intent == "重新申请" -> start
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "退款申请" -> start
-    speak "抱歉，我没有理解您的输入。请选择1或2。"
-    speak "1. 重新申请退款"
-    speak "2. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> start
-    branch user_input == "2" -> start
-    branch user_intent == "重新申请" -> start
-    branch user_intent == "返回主菜单" -> start
     end
 }
 
@@ -148,14 +117,6 @@ step cancel_refund {
     branch user_intent == "重新申请" -> start
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "退款申请" -> start
-    speak "抱歉，我没有理解您的输入。请选择1或2。"
-    speak "1. 重新申请退款"
-    speak "2. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> start
-    branch user_input == "2" -> start
-    branch user_intent == "重新申请" -> start
-    branch user_intent == "返回主菜单" -> start
     end
 }
 

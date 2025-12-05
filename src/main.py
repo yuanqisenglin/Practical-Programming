@@ -19,11 +19,23 @@ from src.dsl.interpreter import Interpreter
 from src.runtime.execution_context import ContextManager
 from src.llm.intent_analyzer import IntentAnalyzer, MockIntentAnalyzer
 
+# 尝试导入配置文件（如果存在）
+try:
+    import config
+    DEFAULT_API_KEY = getattr(config, 'DEFAULT_API_KEY', None)
+    DEFAULT_BASE_URL = getattr(config, 'DEFAULT_BASE_URL', None)
+    DEFAULT_MODEL = getattr(config, 'DEFAULT_MODEL', None)
+except ImportError:
+    DEFAULT_API_KEY = None
+    DEFAULT_BASE_URL = None
+    DEFAULT_MODEL = None
+
 
 class AgentSystem:
     """Agent系统：管理多个用户的对话"""
     
-    def __init__(self, script_path: str, use_mock_llm: bool = False, api_key: Optional[str] = None):
+    def __init__(self, script_path: str, use_mock_llm: bool = False, api_key: Optional[str] = None, 
+                 base_url: Optional[str] = None, model: Optional[str] = None):
         """
         初始化Agent系统
         
@@ -31,6 +43,8 @@ class AgentSystem:
             script_path: DSL脚本文件路径
             use_mock_llm: 是否使用模拟LLM（用于测试）
             api_key: LLM API密钥
+            base_url: API基础URL（用于DeepSeek等兼容OpenAI的API）
+            model: 使用的模型名称
         """
         # 读取并解析脚本
         with open(script_path, 'r', encoding='utf-8') as f:
@@ -45,14 +59,34 @@ class AgentSystem:
             self.intent_analyzer = MockIntentAnalyzer()
         else:
             try:
-                self.intent_analyzer = IntentAnalyzer(api_key=api_key)
+                self.intent_analyzer = IntentAnalyzer(api_key=api_key, base_url=base_url, model=model)
             except Exception as e:
                 print(f"警告：无法初始化LLM接口，使用模拟模式。错误：{e}")
                 self.intent_analyzer = MockIntentAnalyzer()
         
         # 创建意图识别包装函数
         def analyze_intent(user_input: str) -> dict:
-            intents = ["订单查询", "退款申请", "物流查询", "产品咨询", "投诉建议"]
+            # 包含所有可能的意图，确保意图识别器能正确识别
+            intents = [
+                "返回主菜单",  # 操作类意图，优先
+                "查看订单详情",
+                "查看物流信息",
+                "重新查询",
+                "重新申请",
+                "商品质量问题",
+                "商品与描述不符",
+                "不需要了",
+                "其他原因",
+                "查询进度",
+                "查询投诉",
+                "提交投诉",
+                "提交建议",
+                "物流查询",
+                "退款申请",
+                "订单查询",
+                "产品咨询",
+                "投诉建议"
+            ]
             return self.intent_analyzer.analyze(user_input, intents)
         
         # 创建解释器
@@ -216,7 +250,9 @@ def main():
     parser = argparse.ArgumentParser(description="基于DSL的多业务场景Agent系统")
     parser.add_argument("--script", "-s", required=True, help="DSL脚本文件路径")
     parser.add_argument("--mock", "-m", action="store_true", help="使用模拟LLM（不调用真实API）")
-    parser.add_argument("--api-key", help="LLM API密钥（如果不设置，从环境变量OPENAI_API_KEY读取）")
+    parser.add_argument("--api-key", help="LLM API密钥（如果不设置，从环境变量OPENAI_API_KEY或config.py读取）")
+    parser.add_argument("--base-url", help="API基础URL（用于DeepSeek等兼容OpenAI的API）")
+    parser.add_argument("--model", help="使用的模型名称（DeepSeek使用：deepseek-chat）")
     parser.add_argument("--user-id", default="default", help="用户ID（默认：default）")
     
     args = parser.parse_args()
@@ -226,9 +262,15 @@ def main():
         print(f"错误：脚本文件不存在: {args.script}")
         sys.exit(1)
     
+    # 如果没有指定API key，尝试使用配置文件中的默认值
+    api_key = args.api_key or DEFAULT_API_KEY
+    base_url = args.base_url or DEFAULT_BASE_URL
+    model = args.model or DEFAULT_MODEL
+    
     try:
         # 创建Agent系统
-        agent = AgentSystem(args.script, use_mock_llm=args.mock, api_key=args.api_key)
+        agent = AgentSystem(args.script, use_mock_llm=args.mock, api_key=api_key, 
+                           base_url=base_url, model=model)
         
         # 进入交互模式
         interactive_mode(agent, args.user_id)

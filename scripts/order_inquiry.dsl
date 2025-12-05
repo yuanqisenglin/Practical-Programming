@@ -28,15 +28,6 @@ step verify_order {
     branch user_intent == "查看订单详情" -> order_detail
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "订单查询" -> order_detail
-    speak "抱歉，我没有理解您的输入。请选择1或2。"
-    speak "1. 查看订单详情"
-    speak "2. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> order_detail
-    branch user_input == "2" -> start
-    branch user_intent == "查看订单详情" -> order_detail
-    branch user_intent == "返回主菜单" -> start
-    branch user_intent == "订单查询" -> order_detail
     end
 }
 
@@ -53,15 +44,6 @@ step order_detail {
     speak "支付方式：支付宝"
     speak "支付时间：2024-01-15 10:35:00"
     speak "还有其他需要帮助的吗？"
-    speak "1. 查看订单详情"
-    speak "2. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> order_detail
-    branch user_input == "2" -> start
-    branch user_intent == "查看订单详情" -> order_detail
-    branch user_intent == "返回主菜单" -> start
-    branch user_intent == "订单查询" -> order_detail
-    speak "抱歉，我没有理解您的输入。请选择1或2。"
     speak "1. 查看订单详情"
     speak "2. 返回主菜单"
     listen user_input

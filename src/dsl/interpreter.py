@@ -10,6 +10,7 @@ from src.dsl.ast import (
 )
 from src.runtime.execution_context import ExecutionContext
 import re
+import os
 
 
 class InterpreterError(Exception):
@@ -225,8 +226,13 @@ class Interpreter:
         # 存储原始输入
         context.set_variable(node.variable, user_input)
         
-        # 如果有意图识别器，进行意图识别
-        if self.intent_analyzer:
+        # 判断是否需要意图识别
+        # 如果变量名是 user_input 或包含 "input"，通常需要意图识别
+        # 如果变量名是 order_id、complaint_content、suggestion_content 等数据字段，通常不需要意图识别
+        needs_intent_recognition = self._should_recognize_intent(node.variable, user_input)
+        
+        # 如果有意图识别器且需要识别，进行意图识别
+        if self.intent_analyzer and needs_intent_recognition:
             try:
                 intent_result = self.intent_analyzer(user_input)
                 # 将意图识别结果存储到变量中
@@ -235,15 +241,78 @@ class Interpreter:
                 
                 # 如果识别到意图，存储到user_intent变量
                 if "intent" in intent_result:
-                    context.set_variable("user_intent", intent_result["intent"])
+                    recognized_intent = intent_result["intent"]
+                    context.set_variable("user_intent", recognized_intent)
+                    # 调试信息：打印识别到的意图（可选，可以通过环境变量控制）
+                    if os.getenv("DEBUG_INTENT", "").lower() == "true":
+                        print(f"[DEBUG] 用户输入: '{user_input}' -> 识别意图: '{recognized_intent}' (置信度: {intent_result.get('confidence', 0.0):.2f})")
             except Exception as e:
                 # 意图识别失败，继续执行
+                context.set_variable("user_intent", "unknown")
+                if os.getenv("DEBUG_INTENT", "").lower() == "true":
+                    print(f"[DEBUG] 意图识别失败: {e}")
+        else:
+            # 不需要意图识别时，不要覆盖已有的 user_intent
+            if context.get_variable("user_intent") is None:
                 context.set_variable("user_intent", "unknown")
         
         return {
             "status": "running",
             "message": f"收到输入: {user_input}"
         }
+    
+    def _should_recognize_intent(self, variable_name: str, user_input: str) -> bool:
+        """
+        判断是否需要进行意图识别
+        
+        Args:
+            variable_name: 变量名
+            user_input: 用户输入
+        
+        Returns:
+            是否需要意图识别
+        """
+        # 变量名包含 "input" 或 "intent" 的，通常需要意图识别
+        if "input" in variable_name.lower() or "intent" in variable_name.lower():
+            return True
+        
+        var_lower = variable_name.lower()
+
+        # 变量名是数据字段的，通常不需要意图识别
+        data_fields = {
+            "order_id",
+            "complaint_id",
+            "complaint_content",
+            "suggestion_content",
+            "contact_info",
+            "refund_reason",
+            "refund_reason_code",
+            "refund_reason_detail",
+            "logistics_number",
+            "confirm",
+        }
+        if var_lower in data_fields:
+            # 对于数据字段，如果输入是纯数字，直接跳过意图识别
+            if user_input.strip().isdigit():
+                return False
+            # 如果是退款原因等字段的文字描述，则可以尝试意图识别
+            # 例如用户直接输入“质量问题”
+            if var_lower.startswith("refund_reason"):
+                return True
+            return False
+        
+        # 如果输入是纯数字且很短（1-3位），可能是数据而不是意图
+        if user_input.strip().isdigit() and len(user_input.strip()) <= 3:
+            # 检查是否可能是菜单选项（1-9）
+            if len(user_input.strip()) == 1 and user_input.strip() in "123456789":
+                # 可能是菜单选项，需要意图识别
+                return True
+            # 其他短数字可能是数据（如订单号的一部分）
+            return False
+        
+        # 默认情况下，如果变量名看起来像用户输入，进行意图识别
+        # 否则不进行意图识别
+        return "user" in variable_name.lower() or "input" in variable_name.lower()
     
     def _execute_branch(self, node: BranchNode, context: ExecutionContext) -> dict[str, Any]:
         """执行Branch语句"""

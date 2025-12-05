@@ -62,15 +62,8 @@ step submit_complaint {
     branch user_input == "3" -> start
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "投诉建议" -> submit_complaint
-    speak "抱歉，我没有理解您的输入。请选择1-3中的选项。"
-    speak "1. 提交新的投诉"
-    speak "2. 查询投诉进度"
-    speak "3. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> submit_complaint
-    branch user_input == "2" -> query_complaint
-    branch user_input == "3" -> start
-    branch user_intent == "返回主菜单" -> start
+    branch user_intent == "查询投诉" -> query_complaint
+    branch user_intent == "查询进度" -> query_complaint
     end
 }
 
@@ -123,6 +116,8 @@ step show_complaint_status {
     branch user_input == "1" -> query_complaint
     branch user_input == "2" -> start
     branch user_intent == "返回主菜单" -> start
+    branch user_intent == "查询进度" -> query_complaint
+    branch user_intent == "查询投诉" -> query_complaint
     branch user_intent == "投诉建议" -> query_complaint
     speak "抱歉，我没有理解您的输入。请选择1或2。"
     speak "1. 查询其他投诉"
@@ -131,6 +126,8 @@ step show_complaint_status {
     branch user_input == "1" -> query_complaint
     branch user_input == "2" -> start
     branch user_intent == "返回主菜单" -> start
+    branch user_intent == "查询进度" -> query_complaint
+    branch user_intent == "查询投诉" -> query_complaint
     end
 }
 

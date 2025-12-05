@@ -91,6 +91,18 @@ python src/main.py --script scripts/after_sales_complaint.dsl --mock
 
 # 使用真实LLM API（需要配置API密钥）
 python src/main.py --script scripts/order_inquiry.dsl --api-key your_api_key
+
+# 使用 DeepSeek API（推荐方式）
+python src/main.py --script scripts/order_inquiry.dsl \
+    --api-key sk-78c61c5b0f1347ccb4508f7bb6cb216d \
+    --base-url https://api.deepseek.com \
+    --model deepseek-chat
+
+# 或者使用快速启动脚本（已配置 DeepSeek API）
+python run_with_deepseek.py --script scripts/order_inquiry.dsl
+python run_with_deepseek.py --script scripts/logistics_tracking.dsl
+python run_with_deepseek.py --script scripts/refund_application.dsl
+python run_with_deepseek.py --script scripts/after_sales_complaint.dsl
 ```
 
 ### 运行测试
@@ -99,13 +111,60 @@ python src/main.py --script scripts/order_inquiry.dsl --api-key your_api_key
 python tests/run_tests.py
 ```
 
+### 调试模式
+
+系统支持调试模式，可以查看意图识别的详细过程：
+
+**启用意图识别调试模式：**
+
+```bash
+# Windows
+set DEBUG_INTENT=true
+python src/main.py --script scripts/order_inquiry.dsl
+python src/main.py --script scripts/logistics_tracking.dsl
+python src/main.py --script scripts/refund_application.dsl
+python src/main.py --script scripts/after_sales_complaint.dsl
+
+# Linux/Mac
+export DEBUG_INTENT=true
+python src/main.py --script scripts/order_inquiry.dsl
+python src/main.py --script scripts/logistics_tracking.dsl
+python src/main.py --script scripts/refund_application.dsl
+python src/main.py --script scripts/after_sales_complaint.dsl
+```
+
+启用调试模式后，系统会输出以下信息：
+- 用户输入内容
+- 识别到的意图名称
+- 意图识别的置信度
+- 意图识别失败时的错误信息
+
+**示例输出：**
+```
+[DEBUG] 用户输入: '返回主菜单' -> 识别意图: '返回主菜单' (置信度: 0.90)
+[DEBUG] 用户输入: '退出去' -> 识别意图: '返回主菜单' (置信度: 0.85)
+```
+
+**关闭调试模式：**
+
+```bash
+# Windows
+set DEBUG_INTENT=
+# 或者不设置该环境变量
+
+# Linux/Mac
+unset DEBUG_INTENT
+# 或者不设置该环境变量
+```
+
 ## 功能特性
 
 - ✅ 自定义DSL语法，灵活描述业务逻辑
 - ✅ 词法分析和语法分析，构建AST
 - ✅ 解释器执行引擎，支持条件分支和变量操作
-- ✅ LLM意图识别集成，支持OpenAI API
+- ✅ LLM意图识别集成，支持OpenAI API和DeepSeek API
 - ✅ 多线程支持，每个用户独立执行上下文
+- ✅ 调试模式支持，可查看意图识别过程
 - ✅ 完整的测试覆盖
 - ✅ 多个业务场景示例脚本
 

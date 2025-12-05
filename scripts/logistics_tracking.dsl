@@ -33,18 +33,6 @@ step query_logistics {
     branch user_intent == "重新查询" -> start
     branch user_intent == "返回主菜单" -> start
     branch user_intent == "物流查询" -> logistics_timeline
-    speak "抱歉，我没有理解您的输入。请选择1-3中的选项。"
-    speak "1. 查看详细物流轨迹"
-    speak "2. 重新查询物流"
-    speak "3. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> logistics_timeline
-    branch user_input == "2" -> start
-    branch user_input == "3" -> start
-    branch user_intent == "查看物流信息" -> logistics_timeline
-    branch user_intent == "重新查询" -> start
-    branch user_intent == "返回主菜单" -> start
-    branch user_intent == "物流查询" -> logistics_timeline
     end
 }
 
@@ -56,18 +44,6 @@ step logistics_timeline {
     speak "2024-01-17 16:45:00 - 已到达目的地分拨中心"
     speak "预计2024-01-18送达"
     speak "还有其他需要帮助的吗？"
-    speak "1. 查看详细物流轨迹"
-    speak "2. 重新查询物流"
-    speak "3. 返回主菜单"
-    listen user_input
-    branch user_input == "1" -> logistics_timeline
-    branch user_input == "2" -> start
-    branch user_input == "3" -> start
-    branch user_intent == "查看物流信息" -> logistics_timeline
-    branch user_intent == "重新查询" -> start
-    branch user_intent == "返回主菜单" -> start
-    branch user_intent == "物流查询" -> logistics_timeline
-    speak "抱歉，我没有理解您的输入。请选择1-3中的选项。"
     speak "1. 查看详细物流轨迹"
     speak "2. 重新查询物流"
     speak "3. 返回主菜单"
